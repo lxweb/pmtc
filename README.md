@@ -95,7 +95,7 @@ src/
 
 ### 🔄 En Desarrollo
 
-- [ ] Persistencia en localStorage
+- [x] Persistencia en localStorage
 - [ ] Tests unitarios
 - [ ] Calendario visual mejorado
 - [ ] Notificaciones push
