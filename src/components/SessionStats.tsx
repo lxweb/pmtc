@@ -1,14 +1,14 @@
 'use client';
 
-import { Session, Specialty } from '@/types';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { Specialty } from '@/types';
+import { useSessions } from '@/hooks/useSessions';
 
 interface SessionStatsProps {
   specialties: Specialty[];
 }
 
 export default function SessionStats({ specialties }: SessionStatsProps) {
-  const [mySessions] = useLocalStorage<Session[]>('my-sessions', []);
+  const { sessions } = useSessions();
 
   const getSpecialtyName = (specialtyId: string) => {
     const specialty = specialties.find(s => s.id === specialtyId);
@@ -16,7 +16,7 @@ export default function SessionStats({ specialties }: SessionStatsProps) {
   };
 
   const getMostConsultedSpecialty = () => {
-    const specialtyCounts = mySessions.reduce((acc, session) => {
+    const specialtyCounts = sessions.reduce((acc, session) => {
       const specialtyName = getSpecialtyName(session.specialty);
       acc[specialtyName] = (acc[specialtyName] || 0) + 1;
       return acc;
@@ -27,7 +27,7 @@ export default function SessionStats({ specialties }: SessionStatsProps) {
   };
 
   const getMostBookedDay = () => {
-    const dayCounts = mySessions.reduce((acc, session) => {
+    const dayCounts = sessions.reduce((acc, session) => {
       const day = new Date(session.date).toLocaleDateString('es-ES', { weekday: 'long' });
       acc[day] = (acc[day] || 0) + 1;
       return acc;
@@ -39,11 +39,11 @@ export default function SessionStats({ specialties }: SessionStatsProps) {
 
   const getMostUsedModality = () => {
     // En este caso, todas las sesiones son online
-    const onlineCount = mySessions.length;
+    const onlineCount = sessions.length;
     return { modality: 'Online', count: onlineCount };
   };
 
-  if (mySessions.length === 0) {
+  if (sessions.length === 0) {
     return null;
   }
 
@@ -104,24 +104,24 @@ export default function SessionStats({ specialties }: SessionStatsProps) {
       <div className="mt-6 pt-6 border-t border-gray-200">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div>
-            <p className="text-2xl font-bold text-gray-800">{mySessions.length}</p>
+            <p className="text-2xl font-bold text-gray-800">{sessions.length}</p>
             <p className="text-sm text-gray-600">Total sesiones</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-green-600">
-              {mySessions.filter(s => s.status === 'scheduled').length}
+              {sessions.filter(s => s.status === 'scheduled').length}
             </p>
             <p className="text-sm text-gray-600">Agendadas</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-red-600">
-              {mySessions.filter(s => s.status === 'cancelled').length}
+              {sessions.filter(s => s.status === 'cancelled').length}
             </p>
             <p className="text-sm text-gray-600">Canceladas</p>
           </div>
           <div>
             <p className="text-2xl font-bold text-blue-600">
-              {new Set(mySessions.map(s => s.psychologistId)).size}
+              {new Set(sessions.map(s => s.psychologistId)).size}
             </p>
             <p className="text-sm text-gray-600">Psicólogos diferentes</p>
           </div>

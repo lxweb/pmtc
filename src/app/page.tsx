@@ -6,7 +6,8 @@ import PsychologistCard from '@/components/PsychologistCard';
 import BookingModal from '@/components/BookingModal';
 import MySessions from '@/components/MySessions';
 import SessionStats from '@/components/SessionStats';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import SessionManager from '@/components/SessionManager';
+import { useSessions } from '@/hooks/useSessions';
 
 export default function Home() {
   const [psychologists, setPsychologists] = useState<Psychologist[]>([]);
@@ -16,10 +17,10 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'psychologists' | 'sessions'>('psychologists');
+  const [activeTab, setActiveTab] = useState<'psychologists' | 'sessions' | 'manager'>('psychologists');
 
-  // localStorage para las sesiones del usuario
-  const [mySessions, setMySessions] = useLocalStorage<Session[]>('my-sessions', []);
+  // Usar el nuevo hook de sesiones
+  const { addSession, hasSessions } = useSessions();
 
   useEffect(() => {
     fetchData();
@@ -87,8 +88,8 @@ export default function Home() {
 
       const session = await response.json();
       
-      // Guardar en localStorage
-      setMySessions(prevSessions => [...prevSessions, session]);
+      // Guardar en localStorage usando el nuevo hook
+      addSession(session);
       
       alert('¡Sesión agendada exitosamente!');
       
@@ -163,8 +164,20 @@ export default function Home() {
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              Mis Sesiones ({mySessions.length})
+              Mis Sesiones
             </button>
+            {hasSessions() && (
+              <button
+                onClick={() => setActiveTab('manager')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'manager'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                Gestión Avanzada
+              </button>
+            )}
           </div>
         </div>
 
@@ -228,7 +241,7 @@ export default function Home() {
               )}
             </div>
           </>
-        ) : (
+        ) : activeTab === 'sessions' ? (
           <>
             {/* Statistics */}
             <SessionStats specialties={specialties} />
@@ -239,6 +252,11 @@ export default function Home() {
               specialties={specialties}
             />
           </>
+        ) : (
+          <SessionManager 
+            psychologists={psychologists}
+            specialties={specialties}
+          />
         )}
 
         {/* Booking Modal */}
