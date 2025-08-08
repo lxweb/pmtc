@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Psychologist, Specialty } from '@/types';
+import { Psychologist, Specialty, Session } from '@/types';
 import PsychologistCard from '@/components/PsychologistCard';
 import BookingModal from '@/components/BookingModal';
+import MySessions from '@/components/MySessions';
+import SessionStats from '@/components/SessionStats';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 export default function Home() {
   const [psychologists, setPsychologists] = useState<Psychologist[]>([]);
@@ -13,6 +16,10 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'psychologists' | 'sessions'>('psychologists');
+
+  // localStorage para las sesiones del usuario
+  const [mySessions, setMySessions] = useLocalStorage<Session[]>('my-sessions', []);
 
   useEffect(() => {
     fetchData();
@@ -79,7 +86,14 @@ export default function Home() {
       }
 
       const session = await response.json();
+      
+      // Guardar en localStorage
+      setMySessions(prevSessions => [...prevSessions, session]);
+      
       alert('¡Sesión agendada exitosamente!');
+      
+      // Cambiar a la pestaña de sesiones
+      setActiveTab('sessions');
       
       // Refresh psychologists to update availability
       fetchData();
@@ -128,62 +142,104 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Filters */}
+        {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Filtrar por especialidad
-          </h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
             <button
-              onClick={() => handleSpecialtyFilter('')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                selectedSpecialty === ''
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              onClick={() => setActiveTab('psychologists')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'psychologists'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              Todas
+              Psicólogos ({psychologists.length})
             </button>
-            {specialties.map((specialty) => (
-              <button
-                key={specialty.id}
-                onClick={() => handleSpecialtyFilter(specialty.id)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  selectedSpecialty === specialty.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                {specialty.name}
-              </button>
-            ))}
+            <button
+              onClick={() => setActiveTab('sessions')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'sessions'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Mis Sesiones ({mySessions.length})
+            </button>
           </div>
         </div>
 
-        {/* Psychologists List */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-800">
-            Psicólogos Disponibles ({psychologists.length})
-          </h2>
-          
-          {psychologists.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">
-                No se encontraron psicólogos con los filtros aplicados
-              </p>
+        {/* Content based on active tab */}
+        {activeTab === 'psychologists' ? (
+          <>
+            {/* Filters */}
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                Filtrar por especialidad
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleSpecialtyFilter('')}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    selectedSpecialty === ''
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Todas
+                </button>
+                {specialties.map((specialty) => (
+                  <button
+                    key={specialty.id}
+                    onClick={() => handleSpecialtyFilter(specialty.id)}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedSpecialty === specialty.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {specialty.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="grid gap-6">
-              {psychologists.map((psychologist) => (
-                <PsychologistCard
-                  key={psychologist.id}
-                  psychologist={psychologist}
-                  onBookSession={handleBookSession}
-                />
-              ))}
+
+            {/* Psychologists List */}
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold text-gray-800">
+                Psicólogos Disponibles ({psychologists.length})
+              </h2>
+              
+              {psychologists.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500 text-lg">
+                    No se encontraron psicólogos con los filtros aplicados
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-6">
+                  {psychologists.map((psychologist) => (
+                    <PsychologistCard
+                      key={psychologist.id}
+                      psychologist={psychologist}
+                      onBookSession={handleBookSession}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          <>
+            {/* Statistics */}
+            <SessionStats specialties={specialties} />
+            
+            {/* My Sessions */}
+            <MySessions 
+              psychologists={psychologists}
+              specialties={specialties}
+            />
+          </>
+        )}
 
         {/* Booking Modal */}
         <BookingModal
