@@ -1,7 +1,7 @@
 'use client';
 
-import { Session, Psychologist, Specialty } from '@/types';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { Psychologist, Specialty } from '@/types';
+import { useSessions } from '@/hooks/useSessions';
 
 interface MySessionsProps {
   psychologists: Psychologist[];
@@ -9,7 +9,7 @@ interface MySessionsProps {
 }
 
 export default function MySessions({ psychologists, specialties }: MySessionsProps) {
-  const [mySessions, setMySessions] = useLocalStorage<Session[]>('my-sessions', []);
+  const { sessions, cancelSession } = useSessions();
 
   const getPsychologistName = (psychologistId: string) => {
     const psychologist = psychologists.find(p => p.id === psychologistId);
@@ -31,22 +31,16 @@ export default function MySessions({ psychologists, specialties }: MySessionsPro
     });
   };
 
-  const cancelSession = (sessionId: string) => {
+  const handleCancelSession = (sessionId: string) => {
     if (confirm('¿Estás seguro de que quieres cancelar esta sesión?')) {
-      setMySessions(prevSessions => 
-        prevSessions.map(session => 
-          session.id === sessionId 
-            ? { ...session, status: 'cancelled' as const }
-            : session
-        )
-      );
+      cancelSession(sessionId);
     }
   };
 
-  const activeSessions = mySessions.filter(session => session.status === 'scheduled');
-  const cancelledSessions = mySessions.filter(session => session.status === 'cancelled');
+  const activeSessions = sessions.filter(session => session.status === 'scheduled');
+  const cancelledSessions = sessions.filter(session => session.status === 'cancelled');
 
-  if (mySessions.length === 0) {
+  if (sessions.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
@@ -62,7 +56,7 @@ export default function MySessions({ psychologists, specialties }: MySessionsPro
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-        Mis Sesiones ({mySessions.length})
+        Mis Sesiones ({sessions.length})
       </h2>
 
       {/* Sesiones Activas */}
@@ -93,7 +87,7 @@ export default function MySessions({ psychologists, specialties }: MySessionsPro
                     </p>
                   </div>
                   <button
-                    onClick={() => cancelSession(session.id)}
+                    onClick={() => handleCancelSession(session.id)}
                     className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
                   >
                     Cancelar
