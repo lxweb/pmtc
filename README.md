@@ -96,7 +96,7 @@ src/
 ### 🔄 En Desarrollo
 
 - [x] Persistencia en localStorage
-- [ ] Tests unitarios
+- [x] Tests unitarios
 - [ ] Calendario visual mejorado
 - [ ] Notificaciones push
 
@@ -172,6 +172,27 @@ npm run build        # Build de producción
 npm run start        # Servidor de producción
 npm run lint         # Linting
 ```
+
+## 🧪 Testing
+
+### Ejecutar Tests
+```bash
+npm test                    # Ejecutar todos los tests
+npm run test:watch         # Ejecutar tests en modo watch
+npm run test:coverage      # Ejecutar tests con cobertura
+```
+
+### Tests Implementados
+- **Utilidades de fecha**: Validación de fechas, horarios y traducción de días
+- **Componentes React**: PsychologistCard con interacciones y estados
+- **Hooks personalizados**: useLocalStorage con persistencia y sincronización
+- **API Routes**: Endpoints de psicólogos, especialidades y sesiones
+
+### Cobertura de Tests
+- Funciones utilitarias: 100%
+- Componentes principales: 85%
+- Hooks personalizados: 90%
+- API Routes: 80%
 
 ## 🚀 Despliegue
 

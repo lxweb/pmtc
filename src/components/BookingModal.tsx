@@ -78,6 +78,7 @@ export default function BookingModal({
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
+            aria-label="Cerrar"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -87,10 +88,11 @@ export default function BookingModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="patientName" className="block text-sm font-medium text-gray-700 mb-1">
               Nombre del paciente
             </label>
             <input
+              id="patientName"
               type="text"
               required
               value={formData.patientName}
@@ -100,10 +102,11 @@ export default function BookingModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
               Fecha
             </label>
             <input
+              id="date"
               type="date"
               required
               value={formData.date}
@@ -113,10 +116,11 @@ export default function BookingModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">
               Horario
             </label>
             <select
+              id="startTime"
               required
               value={formData.startTime}
               onChange={(e) => setFormData({...formData, startTime: e.target.value})}
@@ -130,10 +134,11 @@ export default function BookingModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="specialty" className="block text-sm font-medium text-gray-700 mb-1">
               Especialidad
             </label>
             <select
+              id="specialty"
               required
               value={formData.specialty}
               onChange={(e) => setFormData({...formData, specialty: e.target.value})}
