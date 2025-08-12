@@ -1,220 +1,295 @@
 # Gestión de Sesiones Psicológicas
 
-Una aplicación web para gestionar sesiones psicológicas online, permitiendo a los pacientes ver psicólogos disponibles, filtrar por especialidad y agendar sesiones.
+Una aplicación web moderna para gestionar sesiones psicológicas, permitiendo a los pacientes ver psicólogos disponibles, filtrar por especialidad y modalidad (online/presencial), y agendar sesiones.
 
 ## 🚀 Características
 
 - **Listado de psicólogos** con información detallada
-- **Filtrado por especialidad** (fobias, relaciones personales, depresión, etc.)
-- **Visualización de disponibilidad** semanal
-- **Agendado de sesiones** con confirmación
+- **Filtrado dual**: Por especialidad Y modalidad de sesión
+- **Modalidades de sesión**: Online 🌐 y Presencial 🏢
+- **Horarios diferenciados** por modalidad
+- **Visualización de disponibilidad** semanal con filtros
+- **Agendado de sesiones** con selección de modalidad
 - **Interfaz responsive** y mobile-friendly
 - **BFF (Backend for Frontend)** con Next.js API routes
+
+## 🆕 Nuevas Funcionalidades
+
+### Modalidades de Sesión
+- **Sesiones Online**: Videollamadas y consultas remotas
+- **Sesiones Presenciales**: Consultas en consultorio físico
+- **Filtrado por Modalidad**: Buscar psicólogos por tipo de sesión
+- **Horarios Diferenciados**: Disponibilidad específica por modalidad
+
+### Filtros Avanzados
+- **Especialidad**: Fobias, relaciones, depresión, estrés laboral, autoestima
+- **Modalidad**: Solo Online, Solo Presencial, Ambas Modalidades
+- **Combinación**: Filtrar por especialidad Y modalidad simultáneamente
 
 ## 🛠️ Tecnologías
 
 - **Frontend**: Next.js 14 con TypeScript
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS v4
 - **Backend**: Next.js API Routes
-- **Contenedorización**: Docker
-- **Desarrollo**: Hot reload con Docker Compose
+- **Contenedorización**: Docker + Docker Compose
+- **Desarrollo**: Hot reload con Turbopack
 
 ## 📋 Requisitos
 
-- Docker y Docker Compose
-- Node.js 18+ (para desarrollo local)
+### Opción 1: Docker (Recomendado)
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+
+### Opción 2: Node.js Directo
+- Node.js 18+ (recomendado 20.x LTS)
+- npm 9+ o yarn 1.22+
 
 ## 🚀 Instalación y Ejecución
 
-### Con Docker (Recomendado)
+### 🐳 Con Docker (Recomendado)
 
-1. **Clonar el repositorio**
-   ```bash
-   git clone <repository-url>
-   cd pmtc
-   ```
+#### Inicio Rápido
+```bash
+# Clonar repositorio
+git clone <repository-url>
+cd pmtc
 
-2. **Ejecutar con Docker Compose**
-   ```bash
-   docker-compose up --build
-   ```
+# Ejecutar en modo desarrollo
+./docker-scripts.sh dev
+```
 
-3. **Abrir en el navegador**
-   ```
-   http://localhost:3000
-   ```
+#### Comandos Disponibles
+```bash
+# Desarrollo (puerto 3000)
+./docker-scripts.sh dev
 
-### Desarrollo Local
+# Producción (puerto 3001)
+./docker-scripts.sh prod
 
-1. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
+# Construir imagen
+./docker-scripts.sh build
 
-2. **Ejecutar en modo desarrollo**
-   ```bash
-   npm run dev
-   ```
+# Ver estado
+./docker-scripts.sh status
 
-3. **Abrir en el navegador**
-   ```
-   http://localhost:3000
-   ```
+# Ver logs
+./docker-scripts.sh logs
 
-## 📁 Estructura del Proyecto
+# Limpiar todo
+./docker-scripts.sh clean
+```
+
+#### Acceso a la Aplicación
+- **Desarrollo**: http://localhost:3000
+- **Producción**: http://localhost:3001
+
+### 📦 Con Node.js Directo
+
+#### Instalación Automática
+```bash
+# Clonar repositorio
+git clone <repository-url>
+cd pmtc
+
+# Ejecutar script de configuración
+./setup-pmtc.sh
+```
+
+#### Instalación Manual
+```bash
+# Clonar repositorio
+git clone <repository-url>
+cd pmtc
+
+# Instalar dependencias
+npm install
+
+# Ejecutar en modo desarrollo
+npm run dev
+```
+
+#### Acceso a la Aplicación
+- **Desarrollo**: http://localhost:3000
+
+## 🏗️ Arquitectura del Proyecto
 
 ```
 src/
-├── app/
-│   ├── api/                    # API Routes (BFF)
-│   │   ├── psychologists/      # Endpoint psicólogos
-│   │   ├── specialties/        # Endpoint especialidades
-│   │   └── sessions/          # Endpoint sesiones
-│   └── page.tsx               # Página principal
-├── components/                 # Componentes React
+├── app/                    # Next.js App Router
+│   ├── api/               # API Routes (BFF)
+│   │   ├── psychologists/ # Endpoint psicólogos
+│   │   ├── specialties/   # Endpoint especialidades
+│   │   └── sessions/      # Endpoint sesiones
+│   └── page.tsx           # Página principal
+├── components/             # Componentes React
 │   ├── PsychologistCard.tsx   # Tarjeta de psicólogo
-│   └── BookingModal.tsx       # Modal de agendado
-├── data/                      # Datos mock
-│   └── mockData.ts           # Datos de prueba
-└── types/                     # Tipos TypeScript
-    └── index.ts              # Definiciones de tipos
+│   ├── BookingModal.tsx       # Modal de agendado
+│   ├── MySessions.tsx         # Mis sesiones
+│   ├── SessionManager.tsx     # Gestión avanzada
+│   └── SessionStats.tsx       # Estadísticas
+├── data/                   # Datos mock
+│   └── mockData.ts         # Psicólogos, especialidades, sesiones
+├── hooks/                  # Hooks personalizados
+│   └── useSessions.ts      # Gestión de sesiones
+├── types/                  # Tipos TypeScript
+│   └── index.ts            # Interfaces y tipos
+└── utils/                  # Utilidades
+    └── __tests__/          # Tests
 ```
 
-## 🎯 Funcionalidades Implementadas
-
-### ✅ Completadas
-
-- [x] Listado de psicólogos con información completa
-- [x] Filtrado por especialidad
-- [x] Visualización de disponibilidad semanal
-- [x] Agendado de sesiones con validaciones
-- [x] Interfaz responsive y moderna
-- [x] BFF con API routes
-- [x] Manejo de errores y estados de carga
-- [x] Docker para desarrollo
-
-### 🔄 En Desarrollo
-
-- [ ] Persistencia en localStorage
-- [ ] Tests unitarios
-- [ ] Calendario visual mejorado
-- [ ] Notificaciones push
-
-## 📊 API Endpoints
-
-### GET /api/psychologists
-Obtiene la lista de psicólogos disponibles.
-
-**Query Parameters:**
-- `specialty` (opcional): ID de especialidad para filtrar
-
-**Response:**
-```json
-[
-  {
-    "id": "1",
-    "name": "Dra. María González",
-    "specialties": [...],
-    "availability": [...],
-    "timezone": "America/Argentina/Buenos_Aires"
-  }
-]
-```
-
-### GET /api/specialties
-Obtiene todas las especialidades disponibles.
-
-### POST /api/sessions
-Agenda una nueva sesión.
-
-**Body:**
-```json
-{
-  "psychologistId": "1",
-  "patientName": "Juan Pérez",
-  "date": "2024-01-15",
-  "startTime": "09:00",
-  "endTime": "10:00",
-  "specialty": "1"
-}
-```
-
-## 🎨 Decisiones Técnicas
-
-### Arquitectura
-- **BFF Pattern**: Next.js API routes como backend para frontend
-- **TypeScript**: Tipado estático para mejor desarrollo
-- **Componentes modulares**: Reutilizables y mantenibles
-
-### UX/UI
-- **Diseño responsive**: Mobile-first approach
-- **Estados de carga**: Feedback visual para el usuario
-- **Validaciones**: En tiempo real y en el servidor
-- **Accesibilidad**: Contraste y navegación por teclado
-
-### Datos
-- **Mock data**: Para desarrollo y demostración
-- **Estructura escalable**: Fácil migración a base de datos real
-- **Validaciones**: En frontend y backend
-
-## 🔧 Configuración de Desarrollo
+## 🔧 Configuración
 
 ### Variables de Entorno
-Crear archivo `.env.local`:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000
+```bash
+# Crear archivo .env.local
+cp .env.example .env.local
+
+# Configurar variables
+NODE_ENV=development
+PORT=3000
 ```
 
-### Scripts Disponibles
+### Configuración de Docker
+- **Dockerfile**: Imagen de producción optimizada
+- **Dockerfile.dev**: Imagen de desarrollo con hot reload
+- **docker-compose.yml**: Orquestación de servicios
+- **.dockerignore**: Archivos excluidos de la imagen
+
+## 📱 Uso de la Aplicación
+
+### 1. Explorar Psicólogos
+- Ver listado de psicólogos disponibles
+- Filtrar por especialidad
+- Filtrar por modalidad (online/presencial)
+- Ver modalidades disponibles en cada tarjeta
+
+### 2. Ver Disponibilidad
+- Hacer clic en "Ver disponibilidad"
+- Filtrar horarios por modalidad
+- Ver horarios específicos para online o presencial
+
+### 3. Agendar Sesión
+- Seleccionar psicólogo
+- Elegir modalidad (online/presencial)
+- Seleccionar fecha y horario
+- Elegir especialidad
+- Confirmar reserva
+
+### 4. Gestionar Sesiones
+- Ver sesiones agendadas
+- Cancelar o completar sesiones
+- Estadísticas de sesiones
+- Exportar/importar datos
+
+## 🧪 Testing
+
+### Ejecutar Tests
 ```bash
-npm run dev          # Desarrollo
-npm run build        # Build de producción
-npm run start        # Servidor de producción
-npm run lint         # Linting
+# Tests unitarios
+npm test
+
+# Tests con coverage
+npm run test:coverage
+
+# Tests en modo watch
+npm run test:watch
+```
+
+### Estructura de Tests
+```
+src/utils/__tests__/
+├── dateUtils.test.ts       # Tests de utilidades de fecha
+└── ...                     # Otros tests
 ```
 
 ## 🚀 Despliegue
 
-### Vercel (Recomendado)
-1. Conectar repositorio a Vercel
-2. Configurar variables de entorno
-3. Deploy automático
-
-### Docker Production
+### Desarrollo
 ```bash
-docker build -t pmtc-app .
-docker run -p 3000:3000 pmtc-app
+npm run dev
 ```
 
-## 📝 Notas de Desarrollo
+### Producción
+```bash
+# Construir
+npm run build
 
-### Asunciones
-- Sesiones online únicamente
-- Horarios en zona horaria local
-- Psicólogos con disponibilidad fija semanal
-- Validaciones básicas de disponibilidad
+# Ejecutar
+npm start
+```
 
-### Trade-offs
-- **Simplicidad vs Complejidad**: Implementación básica pero funcional
-- **Mock data vs DB**: Datos estáticos para MVP
-- **UI vs UX**: Interfaz simple pero efectiva
+### Docker
+```bash
+# Construir imagen
+./docker-scripts.sh build
 
-### Mejoras Futuras
-- Base de datos real (PostgreSQL/MongoDB)
-- Autenticación de usuarios
-- Sistema de notificaciones
-- Calendario visual avanzado
-- Tests automatizados
-- CI/CD pipeline
+# Ejecutar en producción
+./docker-scripts.sh prod
+```
+
+## 📊 Estado del Proyecto
+
+### ✅ Implementado
+- [x] Estructura de datos con modalidades
+- [x] Filtrado por especialidad y modalidad
+- [x] Interfaz de usuario para modalidades
+- [x] Flujo de reserva con selección de modalidad
+- [x] Horarios diferenciados por modalidad
+- [x] API actualizada para modalidades
+- [x] Configuración Docker completa
+
+### 🔄 En Progreso
+- [ ] Tests unitarios para nuevas funcionalidades
+- [ ] Optimizaciones de performance
+- [ ] Mejoras de accesibilidad
+
+### 🚀 Próximas Funcionalidades
+- [ ] Integración con sistemas de videollamadas
+- [ ] Gestión de ubicaciones para sesiones presenciales
+- [ ] Notificaciones diferenciadas por modalidad
+- [ ] Sistema de pagos integrado
+
+## 🔍 Troubleshooting
+
+### Problemas Comunes
+
+#### Docker
+- **Puerto ya en uso**: `./docker-scripts.sh stop`
+- **Problemas de permisos**: `chmod +x docker-scripts.sh`
+- **Imagen corrupta**: `./docker-scripts.sh clean`
+
+#### Node.js
+- **Dependencias**: `rm -rf node_modules && npm install`
+- **Puerto ocupado**: `npm run dev -- -p 3001`
+- **Build fallido**: `npm run build`
+
+## 📚 Documentación
+
+- **[DECISIONES.md](DECISIONES.md)**: Decisiones técnicas del proyecto
+- **[DOCKER.md](DOCKER.md)**: Guía completa de Docker
+- **[DOCKER-WSL2-SETUP.md](DOCKER-WSL2-SETUP.md)**: Configuración Docker + WSL2
+- **[SETUP-ALTERNATIVE.md](SETUP-ALTERNATIVE.md)**: Configuración sin Docker
+- **[TESTING.md](TESTING.md)**: Guía de testing
 
 ## 🤝 Contribución
 
 1. Fork el proyecto
-2. Crear feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit cambios (`git commit -m 'Add AmazingFeature'`)
-4. Push al branch (`git push origin feature/AmazingFeature`)
-5. Abrir Pull Request
+2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abrir un Pull Request
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 📞 Soporte
+
+- **Issues**: Crear un issue en GitHub
+- **Documentación**: Revisar archivos de documentación
+- **Docker**: Ver `DOCKER.md` y `DOCKER-WSL2-SETUP.md`
+- **Alternativas**: Ver `SETUP-ALTERNATIVE.md`
+
+---
+
+*Desarrollado con ❤️ para mejorar la gestión de sesiones psicológicas*
