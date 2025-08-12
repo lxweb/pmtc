@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Psychologist, Specialty, Session } from '@/types';
+import { Psychologist, Specialty, ModalityFilter } from '@/types';
 import PsychologistCard from '@/components/PsychologistCard';
 import BookingModal from '@/components/BookingModal';
 import MySessions from '@/components/MySessions';
@@ -13,6 +13,7 @@ export default function Home() {
   const [psychologists, setPsychologists] = useState<Psychologist[]>([]);
   const [specialties, setSpecialties] = useState<Specialty[]>([]);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('');
+  const [selectedModality, setSelectedModality] = useState<ModalityFilter>('all');
   const [selectedPsychologist, setSelectedPsychologist] = useState<Psychologist | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -49,11 +50,21 @@ export default function Home() {
 
   const handleSpecialtyFilter = async (specialtyId: string) => {
     setSelectedSpecialty(specialtyId);
+    await applyFilters(specialtyId, selectedModality);
+  };
+
+  const handleModalityFilter = async (modality: ModalityFilter) => {
+    setSelectedModality(modality);
+    await applyFilters(selectedSpecialty, modality);
+  };
+
+  const applyFilters = async (specialtyId: string, modality: ModalityFilter) => {
     try {
-      const url = specialtyId 
-        ? `/api/psychologists?specialty=${specialtyId}`
-        : '/api/psychologists';
+      const params = new URLSearchParams();
+      if (specialtyId) params.append('specialty', specialtyId);
+      if (modality && modality !== 'all') params.append('modality', modality);
       
+      const url = `/api/psychologists${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await fetch(url);
       const data = await response.json();
       setPsychologists(data);
@@ -71,7 +82,15 @@ export default function Home() {
     }
   };
 
-  const handleBookingSubmit = async (bookingData: any) => {
+  const handleBookingSubmit = async (bookingData: {
+    psychologistId: string;
+    patientName: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    specialty: string;
+    modality: 'online' | 'inPerson' | '';
+  }) => {
     try {
       const response = await fetch('/api/sessions', {
         method: 'POST',
@@ -98,8 +117,9 @@ export default function Home() {
       
       // Refresh psychologists to update availability
       fetchData();
-    } catch (error: any) {
-      alert(`Error: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -187,32 +207,84 @@ export default function Home() {
             {/* Filters */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                Filtrar por especialidad
+                Filtros
               </h2>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleSpecialtyFilter('')}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    selectedSpecialty === ''
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                  }`}
-                >
-                  Todas
-                </button>
-                {specialties.map((specialty) => (
+              
+              {/* Filtro por especialidad */}
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Especialidad:</h3>
+                <div className="flex flex-wrap gap-2">
                   <button
-                    key={specialty.id}
-                    onClick={() => handleSpecialtyFilter(specialty.id)}
+                    onClick={() => handleSpecialtyFilter('')}
                     className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      selectedSpecialty === specialty.id
+                      selectedSpecialty === ''
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                   >
-                    {specialty.name}
+                    Todas
                   </button>
-                ))}
+                  {specialties.map((specialty) => (
+                    <button
+                      key={specialty.id}
+                      onClick={() => handleSpecialtyFilter(specialty.id)}
+                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                        selectedSpecialty === specialty.id
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {specialty.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Filtro por modalidad */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Modalidad:</h3>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleModalityFilter('all')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedModality === 'all'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  <button
+                    onClick={() => handleModalityFilter('online')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedModality === 'online'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    🌐 Solo Online
+                  </button>
+                  <button
+                    onClick={() => handleModalityFilter('inPerson')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedModality === 'inPerson'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    🏢 Solo Presencial
+                  </button>
+                  <button
+                    onClick={() => handleModalityFilter('both')}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      selectedModality === 'both'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    🔄 Ambas Modalidades
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -262,7 +334,6 @@ export default function Home() {
         {/* Booking Modal */}
         <BookingModal
           psychologist={selectedPsychologist}
-          specialties={specialties}
           isOpen={isModalOpen}
           onClose={() => {
             setIsModalOpen(false);

@@ -1,19 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { Psychologist, Specialty } from '@/types';
+import { Psychologist, SpecialtyInput } from '@/types';
 
 interface BookingModalProps {
   psychologist: Psychologist | null;
-  specialties: Specialty[];
   isOpen: boolean;
   onClose: () => void;
-  onBook: (bookingData: any) => void;
+  onBook: (bookingData: {
+    psychologistId: string;
+    patientName: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    specialty: string;
+    modality: 'online' | 'inPerson' | '';
+  }) => void;
 }
 
 export default function BookingModal({ 
   psychologist, 
-  specialties, 
   isOpen, 
   onClose, 
   onBook 
@@ -22,7 +28,8 @@ export default function BookingModal({
     patientName: '',
     date: '',
     startTime: '',
-    specialty: ''
+    specialty: '',
+    modality: '' as 'online' | 'inPerson' | ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,6 +38,13 @@ export default function BookingModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar que se haya seleccionado una modalidad
+    if (!formData.modality) {
+      alert('Por favor selecciona una modalidad de sesión');
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
@@ -40,7 +54,8 @@ export default function BookingModal({
         date: formData.date,
         startTime: formData.startTime,
         endTime: formData.startTime, // Simplificado: misma hora + 1 hora
-        specialty: formData.specialty
+        specialty: formData.specialty,
+        modality: formData.modality
       };
 
       await onBook(bookingData);
@@ -50,7 +65,8 @@ export default function BookingModal({
         patientName: '',
         date: '',
         startTime: '',
-        specialty: ''
+        specialty: '',
+        modality: ''
       });
       
       onClose();
@@ -62,10 +78,22 @@ export default function BookingModal({
   };
 
   const getAvailableTimeSlots = () => {
-    return psychologist.availability
+    if (!formData.modality) return [];
+    
+    return psychologist.availability[formData.modality]
       .filter(slot => slot.isAvailable)
       .map(slot => slot.startTime)
       .filter((time, index, arr) => arr.indexOf(time) === index); // Remove duplicates
+  };
+
+  const getModalityLabel = (modality: 'online' | 'inPerson') => {
+    return modality === 'online' ? 'Online' : 'Presencial';
+  };
+
+  const getModalityColor = (modality: 'online' | 'inPerson') => {
+    return modality === 'online' 
+      ? 'bg-green-100 text-green-800 border-green-200' 
+      : 'bg-purple-100 text-purple-800 border-purple-200';
   };
 
   return (
@@ -99,6 +127,58 @@ export default function BookingModal({
             />
           </div>
 
+          {/* Selección de modalidad */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Modalidad de sesión
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {psychologist.modalities.online && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({...formData, modality: 'online', startTime: ''});
+                  }}
+                  className={`p-3 rounded-md border-2 transition-colors ${
+                    formData.modality === 'online'
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200 hover:border-green-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🌐</div>
+                    <div className="text-sm font-medium">Online</div>
+                  </div>
+                </button>
+              )}
+              {psychologist.modalities.inPerson && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData({...formData, modality: 'inPerson', startTime: ''});
+                  }}
+                  className={`p-3 rounded-md border-2 transition-colors ${
+                    formData.modality === 'inPerson'
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-purple-300'
+                  }`}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🏢</div>
+                    <div className="text-sm font-medium">Presencial</div>
+                  </div>
+                </button>
+              )}
+            </div>
+            {formData.modality && (
+              <div className={`mt-2 px-3 py-2 rounded-md ${getModalityColor(formData.modality as 'online' | 'inPerson')}`}>
+                <span className="text-sm font-medium">
+                  Modalidad seleccionada: {getModalityLabel(formData.modality as 'online' | 'inPerson')}
+                </span>
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Fecha
@@ -112,22 +192,30 @@ export default function BookingModal({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Horario
-            </label>
-            <select
-              required
-              value={formData.startTime}
-              onChange={(e) => setFormData({...formData, startTime: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Seleccionar horario</option>
-              {getAvailableTimeSlots().map(time => (
-                <option key={time} value={time}>{time}</option>
-              ))}
-            </select>
-          </div>
+          {/* Horarios disponibles solo si se seleccionó modalidad */}
+          {formData.modality && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Horario disponible para {getModalityLabel(formData.modality as 'online' | 'inPerson')}
+              </label>
+              <select
+                required
+                value={formData.startTime}
+                onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Seleccionar horario</option>
+                {getAvailableTimeSlots().map(time => (
+                  <option key={time} value={time}>{time}</option>
+                ))}
+              </select>
+              {getAvailableTimeSlots().length === 0 && (
+                <p className="text-sm text-red-600 mt-1">
+                  No hay horarios disponibles para {getModalityLabel(formData.modality as 'online' | 'inPerson')}
+                </p>
+              )}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -140,11 +228,17 @@ export default function BookingModal({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Seleccionar especialidad</option>
-              {psychologist.specialties.map((specialty: any) => (
-                <option key={specialty.id} value={specialty.id}>
-                  {specialty.name}
-                </option>
-              ))}
+              {psychologist.specialties.map((specialty: SpecialtyInput, index: number) => {
+                // Manejar tanto strings como objetos de especialidad
+                const specialtyId = typeof specialty === 'string' ? specialty : specialty.id;
+                const specialtyName = typeof specialty === 'string' ? specialty : specialty.name;
+                
+                return (
+                  <option key={`${psychologist.id}-specialty-${specialtyId}-${index}`} value={specialtyId}>
+                    {specialtyName}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
@@ -158,7 +252,7 @@ export default function BookingModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !formData.modality}
               className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
             >
               {isSubmitting ? 'Agendando...' : 'Agendar Sesión'}
