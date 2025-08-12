@@ -11,9 +11,9 @@ export async function POST(request: NextRequest) {
     const body: BookingRequest = await request.json();
     
     // Validaciones básicas
-    if (!body.psychologistId || !body.patientName || !body.date || !body.startTime || !body.endTime || !body.specialty) {
+    if (!body.psychologistId || !body.patientName || !body.date || !body.startTime || !body.endTime || !body.specialty || !body.modality) {
       return NextResponse.json(
-        { error: 'Todos los campos son requeridos' },
+        { error: 'Todos los campos son requeridos, incluyendo la modalidad' },
         { status: 400 }
       );
     }
@@ -27,9 +27,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar disponibilidad (simplificado)
-    const dayOfWeek = new Date(body.date).toLocaleDateString('en-US', { weekday: 'lowercase' });
-    const isAvailable = psychologist.availability.some(slot => 
+    // Verificar que el psicólogo ofrece la modalidad seleccionada
+    if (!psychologist.modalities[body.modality]) {
+      return NextResponse.json(
+        { error: `El psicólogo no ofrece sesiones ${body.modality === 'online' ? 'online' : 'presenciales'}` },
+        { status: 400 }
+      );
+    }
+
+    // Verificar disponibilidad según la modalidad
+    const date = new Date(body.date);
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayOfWeek = dayNames[date.getDay()];
+    
+    const isAvailable = psychologist.availability[body.modality].some(slot => 
       slot.day === dayOfWeek && 
       slot.startTime === body.startTime && 
       slot.isAvailable
@@ -37,8 +48,8 @@ export async function POST(request: NextRequest) {
 
     if (!isAvailable) {
       return NextResponse.json(
-        { error: 'Horario no disponible' },
-        { status: 409 }
+        { error: `Horario no disponible para sesiones ${body.modality === 'online' ? 'online' : 'presenciales'}` },
+        { status: 500 }
       );
     }
 
@@ -51,6 +62,7 @@ export async function POST(request: NextRequest) {
       startTime: body.startTime,
       endTime: body.endTime,
       specialty: body.specialty,
+      modality: body.modality,
       status: 'scheduled' as const
     };
 
